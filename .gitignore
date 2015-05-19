@@ -1,0 +1,36 @@
+# Java
+*.class
+
+# IntelliJ
+*.iml
+.idea/
+out/
+generated/
+generated_tests/
+.idea_modules/
+
+# Eclipse
+.metadata
+.gradle
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+.settings/
+.loadpath
+
+# Gradle
+.gradle
+build/
+
+# OSX
+.DS_Store
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes

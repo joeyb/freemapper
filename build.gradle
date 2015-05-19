@@ -1,0 +1,32 @@
+buildscript {
+    repositories { mavenCentral() }
+}
+
+group = 'org.joeyb'
+
+apply from: file('gradle/convention.gradle')
+apply from: file('gradle/coverage.gradle')
+apply from: file('gradle/check.gradle')
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.google.auto.service:auto-service:1.0-rc2'
+    compile 'com.squareup:javapoet:1.0.0'
+    compile 'org.inferred:freebuilder:1.0-rc7'
+
+    testCompile 'com.google.testing.compile:compile-testing:0.6'
+    testCompile 'com.google.truth:truth:0.26'
+    testCompile 'junit:junit:4.+'
+}
+
+jar {
+    from sourceSets.main.resources
+    exclude('config.properties')
+}
+
+task sourceJar(type: Jar) { from sourceSets.main.allJava }

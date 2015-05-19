@@ -1,0 +1,15 @@
+allprojects {
+    apply plugin: 'checkstyle'
+    checkstyle {
+        toolVersion = '6.2'
+        ignoreFailures = false
+        configFile = rootProject.file('codequality/checkstyle.xml')
+    }
+
+    apply plugin: 'findbugs'
+    findbugs {
+        ignoreFailures = false
+    }
+
+    apply plugin: 'pmd'
+}
