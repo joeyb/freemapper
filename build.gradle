@@ -23,7 +23,7 @@ dependencies {
 
     testCompile 'com.google.testing.compile:compile-testing:0.6'
     testCompile 'com.google.truth:truth:0.26'
-    testCompile 'junit:junit:4.+'
+    testCompile 'junit:junit:4.12'
 }
 
 task javadocJar(type: Jar) {
@@ -62,6 +62,12 @@ uploadArchives {
                 packaging 'jar'
                 description 'An annotation processor for generating ResultSet mapper classes'
                 url 'https://github.com/joeyb/freemapper'
+
+                scm {
+                    url 'scm:git@github.com:joeyb/freemapper.git'
+                    connection 'scm:git@github.com:joeyb/freemapper.git'
+                    developerConnection 'scm:git@github.com:joeyb/freemapper.git'
+                }
 
                 licenses {
                     license {
