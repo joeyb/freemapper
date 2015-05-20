@@ -13,6 +13,8 @@ import com.squareup.javapoet.TypeVariableName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -34,9 +36,31 @@ class CodeGenerator {
     public String generate() {
         MethodSpec map = MethodSpec.methodBuilder("map")
             .addParameter(ResultSet.class, "rs")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(TypeName.get(metadata.getElement().asType()))
             .addException(SQLException.class)
             .addCode(getMapCodeBlock())
+            .build();
+
+        MethodSpec mapAll = MethodSpec.methodBuilder("mapAll")
+            .addParameter(ResultSet.class, "rs")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(List.class),
+                                               TypeName.get(metadata.getElement().asType())))
+            .addException(SQLException.class)
+            .addCode(CodeBlock.builder()
+                         .addStatement("$T list = new $T()",
+                                       ParameterizedTypeName.get(
+                                           ClassName.get(List.class),
+                                           TypeName.get(metadata.getElement().asType())),
+                                       ParameterizedTypeName.get(
+                                           ClassName.get(LinkedList.class),
+                                           TypeName.get(metadata.getElement().asType())))
+                         .beginControlFlow("while(rs.next())")
+                         .addStatement("list.add(map(rs))")
+                         .endControlFlow()
+                         .addStatement("return list")
+                         .build())
             .build();
 
         TypeVariableName t = TypeVariableName.get("T");
@@ -70,6 +94,7 @@ class CodeGenerator {
         TypeSpec mapper = TypeSpec.classBuilder(metadata.getMapperName())
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addMethod(map)
+            .addMethod(mapAll)
             .addMethod(getOptionalValue)
             .addType(resultSetSupplier)
             .build();
