@@ -1,5 +1,7 @@
 package org.joeyb.freemapper.processor;
 
+import static org.joeyb.freemapper.processor.TypeUtils.erasesToAnyOf;
+
 import com.google.common.collect.ImmutableSet;
 
 import org.joeyb.freemapper.Field;
@@ -16,6 +18,7 @@ import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -78,7 +81,7 @@ public class PropertyAnalyzer {
             return Optional.empty();
         }
 
-        if (prefix.equals(IS_PREFIX) && returnType.getKind() != TypeKind.BOOLEAN) {
+        if (prefix.equals(IS_PREFIX) && !isTypeBoolean(returnType)) {
             printError(method, "Getters with prefix '%s' must be return a boolean.", IS_PREFIX);
 
             return Optional.empty();
@@ -115,6 +118,18 @@ public class PropertyAnalyzer {
 
     private TypeMirror getReturnType(ExecutableElement method) {
         return method.getReturnType();
+    }
+
+    private boolean isTypeBoolean(TypeMirror type) {
+        if (type.getKind() == TypeKind.BOOLEAN) return true;
+
+        if (type.getKind() == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) type;
+
+            return erasesToAnyOf(declaredType, Boolean.class);
+        }
+
+        return false;
     }
 
     private ImmutableSet<ExecutableElement> methodsOn(TypeElement type)

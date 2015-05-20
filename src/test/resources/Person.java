@@ -3,6 +3,8 @@ package tests;
 import org.joeyb.freemapper.Field;
 import org.joeyb.freemapper.FreeMapper;
 
+import java.util.Optional;
+
 @FreeMapper
 public interface Person {
 
@@ -11,10 +13,13 @@ public interface Person {
 
     boolean isAlive();
 
+    Optional<Integer> getAge();
+
     // This builder is not very useful and intended just for testing.
     class Builder {
         private String name;
         private boolean alive;
+        private Optional<Integer> age;
 
         public Builder setName(String name) {
             this.name = name;
@@ -23,6 +28,11 @@ public interface Person {
 
         public Builder setAlive(Boolean alive) {
             this.alive = alive;
+            return this;
+        }
+
+        public Builder setAge(Optional<Integer> age) {
+            this.age = age;
             return this;
         }
 
@@ -36,6 +46,11 @@ public interface Person {
                 @Override
                 public boolean isAlive() {
                     return alive;
+                }
+
+                @Override
+                public Optional<Integer> getAge() {
+                    return age;
                 }
             };
         }
