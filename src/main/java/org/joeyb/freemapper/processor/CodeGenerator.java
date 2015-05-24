@@ -63,43 +63,45 @@ class CodeGenerator {
                          .build())
             .build();
 
-        TypeVariableName t = TypeVariableName.get("T");
-
-        TypeSpec resultSetSupplier = TypeSpec.interfaceBuilder("ResultSetSupplier")
-            .addTypeVariable(t)
-            .addAnnotation(FunctionalInterface.class)
-            .addMethod(MethodSpec.methodBuilder("get")
-                           .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                           .addException(SQLException.class)
-                           .returns(t)
-                           .build())
-            .addModifiers(Modifier.PRIVATE)
-            .build();
-
-        MethodSpec getOptionalValue = MethodSpec.methodBuilder("getOptionalValue")
-            .addTypeVariable(t)
-            .addParameter(ResultSet.class, "rs")
-            .addParameter(ParameterizedTypeName.get(ClassName.bestGuess("ResultSetSupplier"), t),
-                          "getValue")
-            .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), t))
-            .addException(SQLException.class)
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement("$T value = getValue.get()", t)
-                    .addStatement("return rs.wasNull() ? Optional.empty() : Optional.of(value)")
-                    .build())
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-            .build();
-
-        TypeSpec mapper = TypeSpec.classBuilder(metadata.getMapperName())
-            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+        TypeSpec.Builder mapperBuilder = TypeSpec.classBuilder(metadata.getMapperName())
+            .addModifiers(Modifier.ABSTRACT)
             .addMethod(map)
-            .addMethod(mapAll)
-            .addMethod(getOptionalValue)
-            .addType(resultSetSupplier)
-            .build();
+            .addMethod(mapAll);
 
-        JavaFile file = JavaFile.builder(metadata.getPackageName(), mapper)
+        if (hasOptionalProperty()) {
+            TypeVariableName t = TypeVariableName.get("T");
+
+            TypeSpec resultSetSupplier = TypeSpec.interfaceBuilder("ResultSetSupplier")
+                .addTypeVariable(t)
+                .addAnnotation(FunctionalInterface.class)
+                .addMethod(MethodSpec.methodBuilder("get")
+                               .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                               .addException(SQLException.class)
+                               .returns(t)
+                               .build())
+                .addModifiers(Modifier.PRIVATE)
+                .build();
+
+            MethodSpec getOptionalValue = MethodSpec.methodBuilder("getOptionalValue")
+                .addTypeVariable(t)
+                .addParameter(ResultSet.class, "rs")
+                .addParameter(
+                    ParameterizedTypeName.get(ClassName.bestGuess("ResultSetSupplier"), t),
+                    "getValue")
+                .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), t))
+                .addException(SQLException.class)
+                .addCode(
+                    CodeBlock.builder()
+                        .addStatement("$T value = getValue.get()", t)
+                        .addStatement("return rs.wasNull() ? Optional.empty() : Optional.of(value)")
+                        .build())
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .build();
+
+            mapperBuilder.addMethod(getOptionalValue).addType(resultSetSupplier);
+        }
+
+        JavaFile file = JavaFile.builder(metadata.getPackageName(), mapperBuilder.build())
             .build();
 
         return file.toString();
@@ -213,5 +215,15 @@ class CodeGenerator {
         default:
             return Optional.empty();
         }
+    }
+
+    private boolean hasOptionalProperty() {
+        return metadata.getProperties().stream()
+            .anyMatch(p -> {
+                    Optional<TypeMirror> optionalType = getGenericTypeFromOptional(p.getType());
+
+                    return optionalType.isPresent()
+                           && getResultSetGetter(optionalType.get()).isPresent();
+                });
     }
 }

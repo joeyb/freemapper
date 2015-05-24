@@ -16,7 +16,7 @@ import javax.tools.Diagnostic;
 
 public class Analyzer {
 
-    private static final String MAPPER_SUFFIX = "$$Mapper";
+    private static final String MAPPER_SUFFIX = "_Mapper";
 
     private Elements elements;
     private Messager messager;
