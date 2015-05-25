@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
@@ -47,10 +48,13 @@ public class Analyzer {
             throw new AnnotatedTypeUnsupportedException();
         }
 
+        PackageElement packageElement = elements.getPackageOf(e);
+
         return new Metadata.Builder()
             .setBuilderElement(builderElement.get())
             .setElement(e)
             .setMapperName(e.getSimpleName().toString() + MAPPER_SUFFIX)
+            .setMapperPackage(packageElement.getQualifiedName().toString())
             .setName(e.getSimpleName().toString())
             .setPackageName(elements.getPackageOf(e).getQualifiedName().toString())
             .addAllProperties(propertyAnalyzer.getProperties())

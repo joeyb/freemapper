@@ -55,8 +55,9 @@ public class Processor extends AbstractProcessor {
                 CodeGenerator codeGenerator = new CodeGenerator(metadata);
 
                 try {
-                    Writer writer = filer.createSourceFile(metadata.getMapperName(),
-                                                           annotatedElement)
+                    Writer writer = filer.createSourceFile(
+                        metadata.getPackageName() + "." + metadata.getMapperName(),
+                        annotatedElement)
                         .openWriter();
 
                     writer.append(codeGenerator.generate());

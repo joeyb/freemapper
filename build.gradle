@@ -3,7 +3,7 @@ buildscript {
 }
 
 group = 'org.joeyb'
-version = "0.0.2"
+version = "0.0.3"
 
 apply from: file('gradle/convention.gradle')
 apply from: file('gradle/coverage.gradle')

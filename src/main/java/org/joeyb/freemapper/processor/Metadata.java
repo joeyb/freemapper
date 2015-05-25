@@ -15,6 +15,8 @@ public interface Metadata {
 
     String getMapperName();
 
+    String getMapperPackage();
+
     String getName();
 
     String getPackageName();
