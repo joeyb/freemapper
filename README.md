@@ -16,6 +16,7 @@ import org.inferred.freebuilder.FreeBuilder;
 import org.joeyb.freemapper.Field;
 import org.joeyb.freemapper.FreeMapper;
 
+import java.util.Date;
 import java.util.Optional;
 
 @FreeBuilder
@@ -34,6 +35,9 @@ public interface User {
   @Field(name = "is_admin")
   boolean isAdmin();
 
+  @Field(name = "created_at")
+  Date getCreatedAt();
+
   class Builder extends User_Builder { }
 
   class Mapper extends User_Mapper { }
@@ -51,13 +55,18 @@ import java.util.List;
 import java.util.Optional;
 
 abstract class User_Mapper {
-  public static User map(ResultSet rs) throws SQLException {
+  public static User.Builder mapBuilder(ResultSet rs) throws SQLException {
     User.Builder b = new User.Builder();
     b.setEmail(rs.getString("email"));
     b.setName(getOptionalValue(rs, () -> rs.getString("name")));
     b.setAge(getOptionalValue(rs, () -> rs.getInt("age")));
     b.setAdmin(rs.getBoolean("is_admin"));
-    return b.build();
+    b.setCreatedAt(rs.getTimestamp("created_at"));
+    return b;
+  }
+
+  public static User map(ResultSet rs) throws SQLException {
+    return mapBuilder(rs).build();
   }
 
   public static List<User> mapAll(ResultSet rs) throws SQLException {
