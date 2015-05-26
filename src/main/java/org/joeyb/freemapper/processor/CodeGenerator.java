@@ -13,10 +13,10 @@ import com.squareup.javapoet.TypeVariableName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.DeclaredType;
@@ -34,12 +34,22 @@ class CodeGenerator {
     }
 
     public String generate() {
+        MethodSpec mapBuilder = MethodSpec.methodBuilder("mapBuilder")
+            .addParameter(ResultSet.class, "rs")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .returns(TypeName.get(metadata.getBuilderElement().asType()))
+            .addException(SQLException.class)
+            .addCode(getMapBuilderCodeBlock())
+            .build();
+
         MethodSpec map = MethodSpec.methodBuilder("map")
             .addParameter(ResultSet.class, "rs")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(TypeName.get(metadata.getElement().asType()))
             .addException(SQLException.class)
-            .addCode(getMapCodeBlock())
+            .addCode(CodeBlock.builder()
+                .addStatement("return mapBuilder(rs).build()")
+                .build())
             .build();
 
         MethodSpec mapAll = MethodSpec.methodBuilder("mapAll")
@@ -65,6 +75,7 @@ class CodeGenerator {
 
         TypeSpec.Builder mapperBuilder = TypeSpec.classBuilder(metadata.getMapperName())
             .addModifiers(Modifier.ABSTRACT)
+            .addMethod(mapBuilder)
             .addMethod(map)
             .addMethod(mapAll);
 
@@ -151,7 +162,7 @@ class CodeGenerator {
         return Optional.of(declaredType.getTypeArguments().get(0));
     }
 
-    private CodeBlock getMapCodeBlock() {
+    private CodeBlock getMapBuilderCodeBlock() {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         TypeName builderTypeName = TypeName.get(metadata.getBuilderElement().asType());
@@ -161,7 +172,7 @@ class CodeGenerator {
         metadata.getProperties().stream()
             .forEach(p -> addMapCodeBlockPropertyStatement(builder, p));
 
-        builder.addStatement("return b.build()");
+        builder.addStatement("return b");
 
         return builder.build();
     }
@@ -195,8 +206,10 @@ class CodeGenerator {
             if (erasesToAnyOf(declaredType, Double.class)) {
                 return Optional.of("getDouble");
             }
+            if (erasesToAnyOf(declaredType, Date.class)) {
+                return Optional.of("getTimestamp");
+            }
 
-            // TODO: Handle Dates
             return Optional.empty();
         case BOOLEAN:
             return Optional.of("getBoolean");
