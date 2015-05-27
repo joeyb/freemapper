@@ -1,5 +1,6 @@
 package org.joeyb.freemapper.processor;
 
+import static org.joeyb.freemapper.processor.StringUtils.camelCaseToSnakeCase;
 import static org.joeyb.freemapper.processor.TypeUtils.erasesToAnyOf;
 
 import com.google.common.collect.ImmutableSet;
@@ -109,7 +110,7 @@ public class PropertyAnalyzer {
         Field field = method.getAnnotation(Field.class);
 
         return Optional.of(new Property.Builder()
-                               .setField(field == null ? name : field.name())
+                               .setField(field == null ? camelCaseToSnakeCase(name) : field.name())
                                .setName(name)
                                .setGetterName(method.getSimpleName().toString())
                                .setType(propertyType)
